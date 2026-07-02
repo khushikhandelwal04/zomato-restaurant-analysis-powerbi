@@ -36,23 +36,35 @@ flag small-sample cities that would otherwise skew the ranking.
 
 ## Key technical work
 
-- **Custom DAX measure — Restaurant Success Score:** a weighted metric combining 
-  average rating (60%) and vote volume normalized against the city with the highest 
-  vote count (40%). Caught and fixed a normalization bug where `MAXX` was 
-  inadvertently computing an average instead of a true maximum, which was inflating 
-  scores for cities with above-average vote counts.
-- **Small-sample flagging:** cross-referenced Success Score against restaurant count 
-  per city using a dual-axis line-and-column chart, surfacing that some high-scoring 
-  cities (e.g. Secunderabad, Panchkula) were based on just 1–2 restaurants — a 
-  misleading signal if left unadjusted.
-- **Blank-vs-zero handling:** fixed a common Power BI pitfall where `DIVIDE()`'s 
-  zero-fallback doesn't trigger when the *numerator* (not denominator) evaluates to 
-  `BLANK()` — required switching from `CALCULATE(COUNT(...))` to 
-  `COUNTROWS(FILTER(...))` to guarantee real zero values instead of blank cells.
-- **Hypothesis-driven analysis:** built the Success Factors page around explicit 
-  yes/no comparisons (does online delivery correlate with rating? does table 
-  booking?) rather than just descriptive charts.
+-## Key technical work
 
+- **Custom DAX measure — Restaurant Success Score:**
+```dax
+  Restaurant Success Score = 
+  VAR AvgRating = AVERAGE(zomato[Aggregate rating])
+  VAR MaxVotes = MAXX(ALL(zomato), zomato[Votes])
+  VAR NormVotes = DIVIDE(AVERAGE(zomato[Votes]), MaxVotes, 0)
+  RETURN
+    (AvgRating * 0.6) + (NormVotes * 5 * 0.4)
+```
+  A weighted score combining average rating (60%) and vote volume normalized 
+  against the city with the highest vote count (40%), scaled to a 0–5 range.
+
+- **Fixed a silent normalization bug:** the first version of this measure wrote 
+  `MaxVotes` as `MAXX(ALL(zomato), AVERAGE(zomato[Votes]))` — using `AVERAGE()` 
+  inside `MAXX` instead of the raw column. Since `AVERAGE()` ignores row context, 
+  every iteration returned the same overall average instead of the true maximum, 
+  so `NormVotes` wasn't a real 0–1 ratio and could push scores above the intended 
+  scale. Fixing it to `MAXX(ALL(zomato), zomato[Votes])` corrected the scores 
+  dataset-wide and changed which cities ranked in the top 10.
+  
+
+- **Small-sample flagging:** built a dual-axis chart (Success Score as columns, 
+  Restaurant Count as a secondary-axis line) to check the Top 10 cities against 
+  their actual sample size. This surfaced that Secunderabad and Panchkula's 
+  high scores were based on just 1–2 restaurants each, while the rest of the 
+  Top 10 were backed by ~20 — informed the insight text to explicitly flag 
+  low-sample cities instead of ranking them at face value.
 ## Tech stack
 
 Power BI Desktop · DAX · Power Query
