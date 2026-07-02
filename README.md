@@ -14,7 +14,7 @@ High-level view of the dataset — total restaurants, average rating, rating
 distribution, and city coverage. New Delhi alone accounts for 58% of all restaurants, 
 confirming the dataset is heavily India-centric despite spanning 15 countries.
 
-![Overview](01-overview.png)
+![Overview](overview.png)
 
 ### Page 2: Success Factors
 Tests whether online delivery and table booking actually correlate with better 
@@ -23,14 +23,14 @@ tier difference), and online delivery adds ~0.8 points on average. Also shows
 diminishing returns on price: the rating gap between Premium and Luxury restaurants 
 is just 0.1 points.
 
-![Success Factors](02-success-factors.png)
+![Success Factors](success-factor.png)
 
 ### Page 3: Cities Deep Dive
 Ranks the top 10 cities by a custom **Restaurant Success Score** (60% average rating 
 + 40% normalized vote volume), cross-referenced against restaurant count per city to 
 flag small-sample cities that would otherwise skew the ranking.
 
-![Cities Deep Dive](03-cities-deepdive.png)
+![Cities Deep Dive](cities-deepdive.png)
 
 ---
 
